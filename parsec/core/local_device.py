@@ -24,6 +24,8 @@ from parsec.api.protocol import (
 from parsec.api.data import DataError, UserProfile
 from parsec.core.types import EntryID, LocalDevice, BackendOrganizationAddr
 
+from parsec.core.types.local_device import LocalOperationStorage
+
 
 class LocalDeviceError(Exception):
     pass
@@ -109,6 +111,7 @@ def generate_new_device(
         user_manifest_id=EntryID.new(),
         user_manifest_key=SecretKey.generate(),
         local_symkey=SecretKey.generate(),
+        local_operation_storage=LocalOperationStorage(storage={}, epoch=0,)
     )
 
 
