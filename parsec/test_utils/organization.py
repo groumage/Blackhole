@@ -69,7 +69,7 @@ async def initialize_test_organization(
             human_handle=HumanHandle(label="Alice", email="alice@example.com"),
             device_label="laptop",
         )
-        save_device_with_password(config_dir, alice_device, password, force=force)
+        #save_device_with_password(config_dir, alice_device, password, force=force)
 
     config = load_config(config_dir, debug="DEBUG" in os.environ)
     # Create context manager, alice_core will be needed for the rest of the script
@@ -84,7 +84,7 @@ async def initialize_test_organization(
             other_alice_device = await _register_new_device(
                 cmds=alice_cmds, author=alice_device, device_label="pc"
             )
-            save_device_with_password(config_dir, other_alice_device, password, force=force)
+            #save_device_with_password(config_dir, other_alice_device, password, force=force)
             # Invite Bob in organization
             bob_device = await _register_new_user(
                 cmds=alice_cmds,
@@ -93,7 +93,7 @@ async def initialize_test_organization(
                 human_handle=HumanHandle(email="bob@example.com", label="Bob"),
                 profile=UserProfile.STANDARD,
             )
-            save_device_with_password(config_dir, bob_device, password, force=force)
+            #save_device_with_password(config_dir, bob_device, password, force=force)
             # Create Alice workspace
             alice_ws_id = await alice_core.user_fs.workspace_create("alice_workspace")
             # Create context manager
@@ -130,6 +130,9 @@ async def initialize_test_organization(
         async with logged_core_factory(config, device) as core:
             await core.user_fs.process_last_messages()
             await core.user_fs.sync()
+    save_device_with_password(config_dir, alice_device, password, force=force)
+    save_device_with_password(config_dir, other_alice_device, password, force=force)
+    save_device_with_password(config_dir, bob_device, password, force=force)
     return (alice_device, other_alice_device, bob_device)
 
 
@@ -302,6 +305,7 @@ async def _register_new_device(
         user_manifest_id=author.user_manifest_id,
         user_manifest_key=author.user_manifest_key,
         local_symkey=author.local_symkey,
+        local_operation_storage=author.local_operation_storage,
     )
     now = pendulum_now()
 
