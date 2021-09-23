@@ -45,6 +45,7 @@ from parsec.api.protocol import (
     vlob_create_serializer,
     vlob_update_serializer,
     vlob_poll_changes_serializer,
+    vlob_history_serializer,
     vlob_list_versions_serializer,
     vlob_maintenance_get_reencryption_batch_serializer,
     vlob_maintenance_save_reencryption_batch_serializer,
@@ -161,6 +162,7 @@ async def vlob_create(
     vlob_id: UUID,
     timestamp: pendulum.DateTime,
     blob: bytes,
+    signature: bytes,
 ) -> dict:
     return await _send_cmd(
         transport,
@@ -171,6 +173,7 @@ async def vlob_create(
         vlob_id=vlob_id,
         timestamp=timestamp,
         blob=blob,
+        signature=signature,
     )
 
 
@@ -178,6 +181,7 @@ async def vlob_read(
     transport: Transport,
     encryption_revision: int,
     vlob_id: UUID,
+    signature: bytes,
     version: int = None,
     timestamp: pendulum.DateTime = None,
 ) -> dict:
@@ -189,6 +193,7 @@ async def vlob_read(
         vlob_id=vlob_id,
         version=version,
         timestamp=timestamp,
+        signature=signature,
     )
 
 
@@ -199,6 +204,7 @@ async def vlob_update(
     version: int,
     timestamp: pendulum.DateTime,
     blob: bytes,
+    signature: bytes,
 ) -> dict:
     return await _send_cmd(
         transport,
@@ -209,6 +215,7 @@ async def vlob_update(
         version=version,
         timestamp=timestamp,
         blob=blob,
+        signature=signature,
     )
 
 
@@ -225,6 +232,22 @@ async def vlob_poll_changes(transport: Transport, realm_id: UUID, last_checkpoin
 async def vlob_list_versions(transport: Transport, vlob_id: UUID) -> dict:
     return await _send_cmd(
         transport, vlob_list_versions_serializer, cmd="vlob_list_versions", vlob_id=vlob_id
+    )
+
+
+async def vlob_history(
+    transport: Transport,
+    vlob_id: UUID,
+    after_version: int,
+    before_version: int,
+) -> dict:
+    return await _send_cmd(
+        transport,
+        vlob_history_serializer,
+        cmd="vlob_history",
+        vlob_id=vlob_id,
+        after_version=after_version,
+        before_version=before_version,
     )
 
 
