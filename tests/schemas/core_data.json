@@ -33,6 +33,11 @@
                 "required": true,
                 "type": "Boolean"
             },
+            "local_operation_storage": {
+                "allow_none": false,
+                "required": true,
+                "type": "LocalOperationStorage"
+            },
             "local_symkey": {
                 "allow_none": false,
                 "required": true,
