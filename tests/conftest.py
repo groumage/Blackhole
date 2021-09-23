@@ -73,6 +73,13 @@ def pytest_addoption(parser):
             "(use `PG_URL` env var to customize the database to use)"
         ),
     )
+    parser.addoption(
+        "--blockchain",
+        action="store_true",
+        help=(
+            "Use blockchain backend instead of default memory mock "
+        ),
+    )
     parser.addoption("--runslow", action="store_true", help="Don't skip slow tests")
     parser.addoption("--runmountpoint", action="store_true", help="Don't skip FUSE/WinFSP tests")
     parser.addoption("--rungui", action="store_true", help="Don't skip GUI tests")
@@ -456,6 +463,9 @@ def reset_testbed(request, caplog, persistent_mockup):
     async def _reset_testbed(keep_logs=False):
         if request.config.getoption("--postgresql"):
             await trio_asyncio.aio_as_trio(asyncio_reset_postgresql_testbed)
+        if request.config.getoption("--blockchain"):
+            # BLOCKCHAIN NEEDS TO BE CLEARED UP HERE!
+            pass
         persistent_mockup.clear()
         if not keep_logs:
             caplog.clear()
@@ -471,9 +481,12 @@ def backend_store(request):
 
     elif request.node.get_closest_marker("postgresql"):
         pytest.skip("`Test is postgresql-only")
+    elif request.config.getoption("--blockchain"):
+        # MANAGE TESTS WITH BLOCKCHAIN LABEL
+        return "BLOCKCHAIN"
 
     else:
-        return "MOCKED"
+        return "BLOCKCHAIN"
 
 
 @pytest.fixture
@@ -651,7 +664,7 @@ def webhook_spy(monkeypatch):
         # Webhook are alway POST with utf-8 JSON body
         assert req.method == "POST"
         assert req.headers == {"Content-type": "application/json; charset=utf-8"}
-        cooked_data = json.loads(req.data.decode("utf-8"))
+        cooked_data = json.loads(req.data.decode("utf-8", ))
         events.append((req.full_url, cooked_data))
         yield MockedRep()
 
