@@ -287,6 +287,18 @@ class Tuple(Field):
         return tuple(self.args[i].deserialize(v, attr, obj) for i, v in enumerate(value))
 
 
+class LocalOperationStorage(Field):
+
+    def _serialize(self, value, attr, obj):
+        dict_to_map = Dict(value.storage.keys(),
+            value.storage.values())\
+        ._serialize(value.storage, attr, obj)
+        return tuple((value.epoch, dict_to_map))
+
+    def _deserialize(self, value, attr, obj):
+        return LocalOperationStorage(value[0], value[1])
+
+
 class SigningKey(Field):
     def _serialize(self, value, attr, obj):
         if value is None:
