@@ -68,6 +68,8 @@ from parsec.core.fs.exceptions import (
     FSWorkspaceNotInMaintenance,
 )
 
+import base64
+import json
 
 logger = get_logger()
 
@@ -400,12 +402,18 @@ class UserFS:
         try:
             # Note encryption_revision is always 1 given we never reencrypt
             # the user manifest's realm
-            rep = await self.backend_cmds.vlob_read(1, self.user_manifest_id, version)
+            json_signature = {'encryption_revision': int(1).__str__(), 'entry_id': self.user_manifest_id.__str__(), 'timestamp': None.__str__(), 'version': version.__str__()}
+            signature = self.device.signing_key.sign(bytes(json.dumps(json_signature), encoding='utf-8'))
+            rep = await self.backend_cmds.vlob_read(1, self.user_manifest_id, signature, version)
 
         except BackendNotAvailable as exc:
             raise FSBackendOfflineError(str(exc)) from exc
 
-        if rep["status"] == "in_maintenance":
+        if rep["status"] == "ok":
+            local_operation = (None, self.device.local_operation_storage.epoch, signature, True)
+            self.device.local_operation_storage.add_op(self.user_manifest_id, version, local_operation)
+            self.device.local_operation_storage.add_read_content(self.user_manifest_id, rep['version'], rep['blob'])
+        elif rep["status"] == "in_maintenance":
             raise FSWorkspaceInMaintenance(
                 "Cannot access workspace data while it is in maintenance"
             )
@@ -563,14 +571,25 @@ class UserFS:
             # Note encryption_revision is always 1 given we never reencrypt
             # the user manifest's realm
             if to_sync_um.version == 1:
-                rep = await self.backend_cmds.vlob_create(
-                    self.user_manifest_id, 1, self.user_manifest_id, now, ciphered
-                )
-            else:
-                rep = await self.backend_cmds.vlob_update(
-                    1, self.user_manifest_id, to_sync_um.version, now, ciphered
-                )
+                json_signature = {'ciphered': base64.b64encode(ciphered).decode('utf-8'), 'encryption_revision': int(1).__str__(), 'entry_id': self.user_manifest_id.__str__(), 'timestamp': now.__str__(), 'version': int(1).__str__()}
+                signature = self.device.signing_key.sign(bytes(json.dumps(json_signature), encoding='utf-8'))
 
+                rep = await self.backend_cmds.vlob_create(
+                    self.user_manifest_id, 1, self.user_manifest_id, now, ciphered, signature,
+                )
+                if rep["status"] == "ok":
+                    local_create_operation = (now, self.device.local_operation_storage.epoch, signature, False)
+                    self.device.local_operation_storage.add_op(self.user_manifest_id, to_sync_um.version, local_create_operation)
+            else:
+                json_signature = {'ciphered': base64.b64encode(ciphered).decode('utf-8'), 'encryption_revision': int(1).__str__(), 'entry_id': self.user_manifest_id.__str__(), 'timestamp': now.__str__(), 'version': to_sync_um.version.__str__()}
+                signature = self.device.signing_key.sign(bytes(json.dumps(json_signature), encoding='utf-8'))
+
+                rep = await self.backend_cmds.vlob_update(
+                    1, self.user_manifest_id, to_sync_um.version, now, ciphered, signature,
+                )
+                if rep["status"] == "ok":
+                    local_update_operation = (now, self.device.local_operation_storage.epoch, signature, False)
+                    self.device.local_operation_storage.add_op(self.user_manifest_id, to_sync_um.version, local_update_operation)
         except BackendNotAvailable as exc:
             raise FSBackendOfflineError(str(exc)) from exc
 

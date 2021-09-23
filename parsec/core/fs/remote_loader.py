@@ -54,6 +54,9 @@ from parsec.core.fs.exceptions import (
 )
 from parsec.core.fs.storage import BaseWorkspaceStorage
 
+import base64
+import json
+
 
 @contextmanager
 def translate_remote_devices_manager_errors() -> Iterator[None]:
@@ -425,13 +428,20 @@ class RemoteLoader(UserRemoteLoader):
         # Download the vlob
         workspace_entry = self.get_workspace_entry()
         with translate_backend_cmds_errors():
+            json_signature = {'encryption_revision': workspace_entry.encryption_revision.__str__(), 'entry_id': entry_id.__str__(), 'timestamp': timestamp.__str__(), 'version': version.__str__()}
+            signature = self.device.signing_key.sign(bytes(json.dumps(json_sig), encoding='utf-8'))
             rep = await self.backend_cmds.vlob_read(
                 workspace_entry.encryption_revision,
                 entry_id,
+                signature=signature,
                 version=version,
                 timestamp=timestamp if version is None else None,
             )
-        if rep["status"] == "not_found":
+        if rep["status"] == "ok":
+            local_read_operation = (timestamp, self.device.local_operation_storage.epoch, signature, True)
+            self.device.local_operation_storage.add_op(entry_id, version, local_read_operation)
+            self.device.local_operation_storage.add_read_content(entry_id, rep['version'], base64.b64encode(rep['blob']).decode('utf-8'))
+        elif rep["status"] == "not_found":
             raise FSRemoteManifestNotFound(entry_id)
         elif rep["status"] == "not_allowed":
             # Seems we lost the access to the realm
@@ -522,20 +532,34 @@ class RemoteLoader(UserRemoteLoader):
 
         # Upload the vlob
         if manifest.version == 1:
+            json_signature = {'ciphered': base64.b64encode(ciphered).decode('utf-8'), 'encryption_revision': workspace_entry.encryption_revision.__str__(), 'entry_id': entry_id.__str__(), 'timestamp': manifest.timestamp.__str__(), 'version': int(1).__str__()}
+            signature = self.device.signing_key.sign(bytes(json.dumps(json_signature), encoding='utf-8'))
             await self._vlob_create(
-                workspace_entry.encryption_revision, entry_id, ciphered, manifest.timestamp
+                workspace_entry.encryption_revision,
+                entry_id,
+                ciphered,
+                manifest.timestamp,
+                signature,
             )
         else:
-            await self._vlob_update(
+            json_signature = {'ciphered': base64.b64encode(ciphered).decode('utf-8'), 'encryption_revision': workspace_entry.encryption_revision.__str__(), 'entry_id': entry_id.__str__(), 'timestamp': manifest.timestamp.__str__(), 'version': manifest.version.__str__()}
+            signature = self.device.signing_key.sign(bytes(json.dumps(json_signature), encoding='utf-8'))
+            await self._vlob_update( 
                 workspace_entry.encryption_revision,
                 entry_id,
                 ciphered,
                 manifest.timestamp,
                 manifest.version,
+                signature,
             )
 
     async def _vlob_create(
-        self, encryption_revision: int, entry_id: EntryID, ciphered: bytes, now: DateTime
+        self,
+        encryption_revision: int,
+        entry_id: EntryID,
+        ciphered: bytes,
+        now: DateTime,
+        signature: bytes,
     ) -> None:
         """
         Raises:
@@ -547,12 +571,15 @@ class RemoteLoader(UserRemoteLoader):
             FSWorkspaceNoAccess
         """
 
-        # Vlob upload
+        # Vlob create
         with translate_backend_cmds_errors():
             rep = await self.backend_cmds.vlob_create(
-                self.workspace_id, encryption_revision, entry_id, now, ciphered
+                self.workspace_id, encryption_revision, entry_id, now, ciphered, signature,
             )
-        if rep["status"] == "already_exists":
+        if rep["status"] == "ok":
+            local_create_operation = (now, self.device.local_operation_storage.epoch, signature, False)
+            self.device.local_operation_storage.add_op(entry_id, 1, local_create_operation)
+        elif rep["status"] == "already_exists":
             raise FSRemoteSyncError(entry_id)
         elif rep["status"] == "not_allowed":
             # Seems we lost the access to the realm
@@ -575,6 +602,7 @@ class RemoteLoader(UserRemoteLoader):
         ciphered: bytes,
         now: DateTime,
         version: int,
+        signature: bytes,
     ) -> None:
         """
         Raises:
@@ -588,10 +616,13 @@ class RemoteLoader(UserRemoteLoader):
         # Vlob upload
         with translate_backend_cmds_errors():
             rep = await self.backend_cmds.vlob_update(
-                encryption_revision, entry_id, version, now, ciphered
+                encryption_revision, entry_id, version, now, ciphered, signature
             )
 
-        if rep["status"] == "not_found":
+        if rep["status"] == "ok":
+            local_update_operation = (now, self.device.local_operation_storage.epoch, signature)
+            self.device.local_operation_storage.add_op(entry_id, version, local_update_operation)
+        elif rep["status"] == "not_found":
             raise FSRemoteSyncError(entry_id)
         elif rep["status"] == "not_allowed":
             # Seems we lost the access to the realm
