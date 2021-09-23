@@ -156,3 +156,11 @@ Terminal 2
 ##########
 1. ``$ source tests/scripts/run_testenv.sh --db BLOCKCHAIN``
 2. ``$ python3 -m pytest --blockchain --runslow -k backend/realm``
+
+Iteration 2 : Parsec with metadata ghost blockchain for verifiable history
+==========================================================================
+Same installation steps as iteration 1 (``$ pip install -e .[all]``).
+
+Make sure mockup storage is used : ``$ ./tests/scripts/select_db.sh --mocked``
+
+Then launch test with pytest (iteration 2 don't work with gui) : ``$ python3 -m pytest --blockchain --runslow -k backend/realm``
