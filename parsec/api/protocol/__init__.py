@@ -113,6 +113,7 @@ from parsec.api.protocol.vlob import (
     vlob_update_serializer,
     vlob_poll_changes_serializer,
     vlob_list_versions_serializer,
+    vlob_history_serializer,
     vlob_maintenance_get_reencryption_batch_serializer,
     vlob_maintenance_save_reencryption_batch_serializer,
 )
@@ -231,6 +232,7 @@ __all__ = (
     "vlob_update_serializer",
     "vlob_poll_changes_serializer",
     "vlob_list_versions_serializer",
+    "vlob_history_serializer",
     "vlob_maintenance_get_reencryption_batch_serializer",
     "vlob_maintenance_save_reencryption_batch_serializer",
     # Block

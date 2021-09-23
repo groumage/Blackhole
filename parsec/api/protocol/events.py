@@ -17,6 +17,7 @@ class APIEvent(Enum):
     REALM_MAINTENANCE_STARTED = "realm.maintenance_started"
     REALM_VLOBS_UPDATED = "realm.vlobs_updated"
     REALM_ROLES_UPDATED = "realm.roles_updated"
+    REALM_EPOCH_FINISHED = "realm.epoch_finished"
 
 
 class EventsPingedRepSchema(BaseRepSchema):
@@ -61,6 +62,11 @@ class EventsInviteStatusChangedRepSchema(BaseRepSchema):
     invitation_status = InvitationStatusField(required=True)
 
 
+class EventsEpochFinishedRepSchema(BaseRepSchema):
+    event = fields.EnumCheckedConstant(APIEvent.REALM_EPOCH_FINISHED, required=True)
+    epoch = fields.Integer(required=True)
+
+
 class EventsListenReqSchema(BaseReqSchema):
     wait = fields.Boolean(missing=True)
 
@@ -75,6 +81,7 @@ class EventsListenRepSchema(OneOfSchema):
         APIEvent.REALM_VLOBS_UPDATED: EventsRealmVlobsUpdatedRepSchema(),
         APIEvent.REALM_MAINTENANCE_STARTED: EventsRealmMaintenanceStartedRepSchema(),
         APIEvent.REALM_MAINTENANCE_FINISHED: EventsRealmMaintenanceFinishedRepSchema(),
+        APIEvent.REALM_EPOCH_FINISHED: EventsEpochFinishedRepSchema(),
     }
 
     def get_obj_type(self, obj: Dict[str, object]) -> APIEvent:

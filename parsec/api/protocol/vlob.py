@@ -11,6 +11,7 @@ __all__ = (
     "vlob_update_serializer",
     "vlob_poll_changes_serializer",
     "vlob_list_versions_serializer",
+    "vlob_history_serializer",
     "vlob_maintenance_get_reencryption_batch_serializer",
     "vlob_maintenance_save_reencryption_batch_serializer",
 )
@@ -31,6 +32,7 @@ class VlobCreateReqSchema(BaseReqSchema):
     # the actual timestamp within the message.
     timestamp = fields.DateTime(required=True)
     blob = fields.Bytes(required=True)
+    signature = fields.Bytes(required=True)
 
 
 class VlobCreateRepSchema(BaseRepSchema):
@@ -45,6 +47,7 @@ class VlobReadReqSchema(BaseReqSchema):
     vlob_id = fields.UUID(required=True)
     version = fields.Integer(validate=lambda n: n is None or _validate_version(n), missing=None)
     timestamp = fields.DateTime(allow_none=True, missing=None)
+    signature = fields.Bytes(required=True)
 
 
 class VlobReadRepSchema(BaseRepSchema):
@@ -63,6 +66,7 @@ class VlobUpdateReqSchema(BaseReqSchema):
     timestamp = fields.DateTime(required=True)
     version = fields.Integer(required=True, validate=_validate_version)
     blob = fields.Bytes(required=True)
+    signature = fields.Bytes(required=True)
 
 
 class VlobUpdateRepSchema(BaseRepSchema):
@@ -100,6 +104,28 @@ class VlobListVersionsRepSchema(BaseRepSchema):
 
 vlob_list_versions_serializer = CmdSerializer(VlobListVersionsReqSchema, VlobListVersionsRepSchema)
 
+
+class HistoryEntrySchema(BaseSchema):
+    version = fields.Integer(required=True)
+    author = DeviceIDField(required=True)
+    timestamp = fields.DateTime(required=True, allow_none=True)
+    hash_obj_after_operation = fields.String(required=True)
+    hash_prev_digest = fields.String(required=True)
+    signature = fields.Bytes(required=True)
+    is_read_op = fields.Boolean(required=True)
+
+
+class VlobHistoryReqSchema(BaseReqSchema):
+    vlob_id = fields.UUID(required=True)
+    after_version = fields.Integer(required=True)
+    before_version = fields.Integer(required=True)
+
+
+class VlobHistoryRepSchema(BaseRepSchema):
+    history = fields.List(fields.Nested(HistoryEntrySchema), required=True)
+
+
+vlob_history_serializer = CmdSerializer(VlobHistoryReqSchema, VlobHistoryRepSchema)
 
 # Maintenance stuff
 
