@@ -50,6 +50,15 @@ class EventsComponent:
             except trio.WouldBlock:
                 client_ctx.logger.warning(f"event queue is full for {client_ctx}")
 
+        def _on_epoch_finished(event, backend_event, organization_id, author, epoch):
+            if organization_id != client_ctx.organization_id or author == client_ctx.device_id:
+                return
+
+            try:
+                client_ctx.send_events_channel.send_nowait({"event": event, "epoch": epoch})
+            except trio.WouldBlock:
+                client_ctx.logger.warning(f"event queue is full for {client_ctx}")
+
         def _on_realm_events(event, backend_event, organization_id, author, realm_id, **kwargs):
             if (
                 organization_id != client_ctx.organization_id
@@ -113,6 +122,10 @@ class EventsComponent:
             client_ctx.event_bus_ctx.connect(
                 BackendEvent.INVITE_STATUS_CHANGED,
                 partial(_on_invite_status_changed, APIEvent.INVITE_STATUS_CHANGED),
+            )
+            client_ctx.event_bus_ctx.connect(
+                BackendEvent.REALM_EPOCH_FINISHED,
+                partial(_on_epoch_finished, APIEvent.REALM_EPOCH_FINISHED),
             )
 
             # Final event to keep up to date the list of realm we should listen on

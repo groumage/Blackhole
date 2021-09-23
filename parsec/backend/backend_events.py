@@ -25,3 +25,4 @@ class BackendEvent(Enum):
     REALM_MAINTENANCE_STARTED = "realm.maintenance_started"
     REALM_VLOBS_UPDATED = "realm.vlobs_updated"
     REALM_ROLES_UPDATED = "realm.roles_updated"
+    REALM_EPOCH_FINISHED = "realm.epoch_finished"
