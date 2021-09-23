@@ -68,6 +68,7 @@ class BackendAuthenticatedCmds:
     vlob_create = expose_cmds_with_retrier(cmds.vlob_create)
     vlob_read = expose_cmds_with_retrier(cmds.vlob_read)
     vlob_update = expose_cmds_with_retrier(cmds.vlob_update)
+    vlob_history = expose_cmds_with_retrier(cmds.vlob_history)
     vlob_list_versions = expose_cmds_with_retrier(cmds.vlob_list_versions)
     vlob_maintenance_get_reencryption_batch = expose_cmds_with_retrier(
         cmds.vlob_maintenance_get_reencryption_batch
@@ -130,6 +131,12 @@ def _handle_event(event_bus: EventBus, rep: dict) -> None:
             CoreEvent.BACKEND_REALM_MAINTENANCE_FINISHED,
             realm_id=rep["realm_id"],
             encryption_revision=rep["encryption_revision"],
+        )
+        
+    elif rep["event"] == APIEvent.REALM_EPOCH_FINISHED:
+        event_bus.send(
+            CoreEvent.BACKEND_REALM_EPOCH_FINISHED,
+            epoch=rep["epoch"],
         )
 
 
