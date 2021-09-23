@@ -34,6 +34,7 @@ from parsec.test_utils import initialize_test_organization
 
 DEFAULT_BACKEND_PORT = 6888
 DEFAULT_ADMINISTRATION_TOKEN = "V8VjaXrOz6gUC6ZEHPab0DSsjfq6DmcJ"
+DEFAULT_DB = "MOCKED"
 DEFAULT_EMAIL_HOST = "MOCKED"
 DEFAULT_DEVICE_PASSWORD = "test"
 
@@ -128,10 +129,10 @@ MimeType=x-scheme-handler/parsec;
     await trio.run_process("xdg-mime default parsec.desktop x-scheme-handler/parsec".split())
 
 
-async def restart_local_backend(administration_token, backend_port, email_host):
+async def restart_local_backend(administration_token, backend_port, db, email_host):
     pattern = f"parsec.* backend.* run.* -P {backend_port}"
     command = (
-        f"{sys.executable} -Wignore -m parsec.cli backend run -b MOCKED --db MOCKED "
+        f"{sys.executable} -Wignore -m parsec.cli backend run -b MOCKED --db {db} "
         f"--email-host={email_host} -P {backend_port} "
         f"--spontaneous-organization-bootstrap "
         f"--administration-token {administration_token} --backend-addr parsec://localhost:{backend_port}?no_ssl=true"
@@ -179,6 +180,7 @@ async def restart_local_backend(administration_token, backend_port, email_host):
     "-T", "--administration-token", show_default=True, default=DEFAULT_ADMINISTRATION_TOKEN
 )
 @click.option("--force/--no-force", show_default=True, default=False)
+@click.option("--db", show_default=True, default=DEFAULT_DB)
 @click.option("--email-host", show_default=True, default=DEFAULT_EMAIL_HOST)
 @click.option("--add-random-users", show_default=True, default=0)
 @click.option("--add-random-devices", show_default=True, default=0)
@@ -199,6 +201,19 @@ def main(**kwargs):
     This scripts create two users, Alice and Bob who both own two devices,
     laptop and pc. They each have their workspace, respectively
     alice_workspace and bob_workspace, that their sharing with each other.
+
+    The --db argument may be used to select whether to store manifests in the in
+    the default mocked up memory component, or in the blockchain. The command
+
+       \b
+       $ source test/scripts/run_testenv.sh --db BLOCKCHAIN
+
+    sarts the backend with manifests stored in memory, while the command
+
+       \b
+       $ source test/scripts/run_testenv.sh --db BACKEND
+
+    starts the backend with manifests stored in the blockchain.
 
     The --empty (or -e) argument may be used to bypass the initialization of the
     test environment:
@@ -223,6 +238,7 @@ def main(**kwargs):
         $ firefox --no-remote "<paste the URL here>"
         # A second instance of parsec pops-up
         # Enter the token to complete the registration
+
     """
     trio_run(lambda: amain(**kwargs))
 
@@ -233,6 +249,7 @@ async def amain(
     password,
     administration_token,
     force,
+    db,
     email_host,
     add_random_users,
     add_random_devices,
@@ -253,7 +270,7 @@ async def amain(
     # Start a local backend
     if backend_address is None:
         backend_address = await restart_local_backend(
-            administration_token, backend_port, email_host
+            administration_token, backend_port, db, email_host
         )
         click.echo(
             f"""\

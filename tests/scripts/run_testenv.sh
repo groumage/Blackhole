@@ -28,7 +28,8 @@ if [[ "$(uname)" == "Darwin" ]]; then
 else
   source_file=$(tempfile)
 fi
-$script_dir/run_testenv.py --source-file $source_file $@ || return $?
+
+python3 $script_dir/run_testenv.py --source-file $source_file $@ || return $?
 source $source_file
 
 # Clean up
