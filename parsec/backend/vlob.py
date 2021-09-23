@@ -13,6 +13,7 @@ from parsec.api.protocol import (
     vlob_update_serializer,
     vlob_poll_changes_serializer,
     vlob_list_versions_serializer,
+    vlob_history_serializer,
     vlob_maintenance_get_reencryption_batch_serializer,
     vlob_maintenance_save_reencryption_batch_serializer,
 )
@@ -208,6 +209,34 @@ class BaseVlobComponent:
 
         return vlob_list_versions_serializer.rep_dump({"status": "ok", "versions": versions_dict})
 
+    @api("vlob_history")
+    @catch_protocol_errors
+    async def api_vlob_history(self, client_ctx, msg):
+        msg = vlob_history_serializer.req_load(msg)
+        try:
+            history = await self.history(client_ctx.organization_id, client_ctx.device_id, msg["vlob_id"],
+                                         msg["after_version"], msg["before_version"])
+        except VlobAccessError:
+            return vlob_history_serializer.rep_dump({"status": "not_allowed"})
+
+        except VlobNotFoundError as exc:
+            return vlob_history_serializer.rep_dump(
+                {"status": "not_found", "reason": str(exc)}
+            )
+
+        except VlobInMaintenanceError:
+            return vlob_history_serializer.rep_dump({"status": "in_maintenance"})
+
+        return vlob_history_serializer.rep_dump(
+            {
+                "status": "ok",
+                "history": [{'version': x["version"], 'author': x["author"], 'timestamp': x["timestamp"],
+                             'hash_obj_after_operation': x["hash_obj_after_operation"],
+                             'hash_prev_digest': x["hash_prev_digest"], 'signature': x["signature"],
+                             'is_read_op': x["is_read_op"]} for x in history],
+            }
+        )
+
     @api("vlob_maintenance_get_reencryption_batch")
     @catch_protocol_errors
     async def api_vlob_maintenance_get_reencryption_batch(self, client_ctx, msg):
@@ -301,6 +330,7 @@ class BaseVlobComponent:
         vlob_id: UUID,
         timestamp: pendulum.DateTime,
         blob: bytes,
+        signature: bytes,
     ) -> None:
         """
         Raises:
@@ -316,6 +346,7 @@ class BaseVlobComponent:
         author: DeviceID,
         encryption_revision: int,
         vlob_id: UUID,
+        signature: bytes,
         version: Optional[int] = None,
         timestamp: Optional[pendulum.DateTime] = None,
     ) -> Tuple[int, bytes, DeviceID, pendulum.DateTime]:
@@ -338,6 +369,7 @@ class BaseVlobComponent:
         version: int,
         timestamp: pendulum.DateTime,
         blob: bytes,
+        signature: bytes,
     ) -> None:
         """
         Raises:
@@ -370,6 +402,16 @@ class BaseVlobComponent:
             VlobNotFoundError
             VlobAccessError
         """
+        raise NotImplementedError()
+
+    def history(
+        self,
+        organization_id: OrganizationID,
+        author: DeviceID,
+        vlob_id: UUID,
+        after_version: int,
+        before_version: int,
+    ) -> List[Tuple[OrganizationID, UUID, int, bool, pendulum.DateTime]]:
         raise NotImplementedError()
 
     async def maintenance_get_reencryption_batch(
