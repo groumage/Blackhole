@@ -13,6 +13,7 @@ class CoreEvent(Enum):
     BACKEND_REALM_MAINTENANCE_STARTED = "backend.realm.maintenance_started"
     BACKEND_REALM_ROLES_UPDATED = "backend.realm.roles_updated"
     BACKEND_REALM_VLOBS_UPDATED = "backend.realm.vlobs_updated"
+    BACKEND_REALM_EPOCH_FINISHED = "backend.realm.epoch_finished"
     # Fs
     FS_ENTRY_REMOTE_CHANGED = "fs.entry.remote_changed"
     FS_ENTRY_SYNCED = "fs.entry.synced"
