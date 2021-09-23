@@ -519,6 +519,7 @@ def backend_data_binder_factory(request, backend_addr, initial_user_manifest_sta
                     blob=manifest.dump_sign_and_encrypt(
                         author_signkey=author.signing_key, key=author.user_manifest_key
                     ),
+                    signature=b"0",
                 )
 
                 # Avoid possible race condition in tests listening for events
