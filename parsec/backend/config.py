@@ -113,6 +113,8 @@ class BackendConfig:
     def db_type(self):
         if self.db_url.upper() == "MOCKED":
             return "MOCKED"
+        elif self.db_url.upper() == "BLOCKCHAIN":
+            return "BLOCKCHAIN"
         else:
             return "POSTGRESQL"
         return self._db_type

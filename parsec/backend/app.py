@@ -29,6 +29,7 @@ from parsec.backend.client_context import AuthenticatedClientContext, InvitedCli
 from parsec.backend.handshake import do_handshake
 from parsec.backend.memory import components_factory as mocked_components_factory
 from parsec.backend.postgresql import components_factory as postgresql_components_factory
+from parsec.backend.blockchain import components_factory as blockchain_components_factory
 from parsec.backend.http import HTTPRequest
 from parsec.backend.invite import CloseInviteConnection
 
@@ -55,6 +56,8 @@ async def backend_app_factory(config: BackendConfig, event_bus: Optional[EventBu
 
     if config.db_url == "MOCKED":
         components_factory = mocked_components_factory
+    elif config.db_url == "BLOCKCHAIN":
+        components_factory = blockchain_components_factory
     else:
         components_factory = postgresql_components_factory
 
