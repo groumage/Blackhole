@@ -21,6 +21,7 @@ from parsec.api.protocol import (
     vlob_update_serializer,
     vlob_list_versions_serializer,
     vlob_poll_changes_serializer,
+    vlob_history_serializer,
     vlob_maintenance_get_reencryption_batch_serializer,
     vlob_maintenance_save_reencryption_batch_serializer,
     events_subscribe_serializer,
@@ -191,34 +192,37 @@ realm_finish_reencryption_maintenance = CmdSock(
 vlob_create = CmdSock(
     "vlob_create",
     vlob_create_serializer,
-    parse_args=lambda self, realm_id, vlob_id, blob, timestamp=None, encryption_revision=1: {
+    parse_args=lambda self, realm_id, vlob_id, blob, signature=b"0", timestamp=None, encryption_revision=1: {
         "realm_id": realm_id,
         "vlob_id": vlob_id,
         "blob": blob,
         "timestamp": timestamp or pendulum_now(),
         "encryption_revision": encryption_revision,
+        "signature": signature,
     },
     check_rep_by_default=True,
 )
 vlob_read = CmdSock(
     "vlob_read",
     vlob_read_serializer,
-    parse_args=lambda self, vlob_id, version=None, timestamp=None, encryption_revision=1: {
+    parse_args=lambda self, vlob_id, signature=b"0", version=None, timestamp=None, encryption_revision=1: {
         "vlob_id": vlob_id,
         "version": version,
         "timestamp": timestamp,
         "encryption_revision": encryption_revision,
+        "signature": signature,
     },
 )
 vlob_update = CmdSock(
     "vlob_update",
     vlob_update_serializer,
-    parse_args=lambda self, vlob_id, version, blob, encryption_revision=1, timestamp=None: {
+    parse_args=lambda self, vlob_id, version, blob, signature=b"0", encryption_revision=1, timestamp=None: {
         "vlob_id": vlob_id,
         "version": version,
         "blob": blob,
         "encryption_revision": encryption_revision,
         "timestamp": timestamp or pendulum_now(),
+        "signature": signature,
     },
     check_rep_by_default=True,
 )
@@ -236,6 +240,15 @@ vlob_poll_changes = CmdSock(
     parse_args=lambda self, realm_id, last_checkpoint: {
         "realm_id": realm_id,
         "last_checkpoint": last_checkpoint,
+    },
+)
+vlob_history = CmdSock(
+    "vlob_history",
+    vlob_history_serializer,
+    parse_args=lambda self, vlob_id, after_version, before_version: {
+        "vlob_id": vlob_id,
+        "after_version": after_version,
+        "before_version": before_version,
     },
 )
 vlob_maintenance_get_reencryption_batch = CmdSock(
