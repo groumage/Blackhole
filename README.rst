@@ -17,6 +17,7 @@ Perform test using gui
 Summary result of unit test
 ---------------------------
 Check that mor than 150 tests out of 157 have been validated.
+
 .. image:: docs/result_unit_test.png
   :width: 800
   :align: center
