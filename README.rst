@@ -14,6 +14,6 @@ Perform test using gui
 ----------------------
 ``$ ./execute_unit_test.sh --gui <path_to_tendermint_executable>``
 
-.. image:: docs/result_unit_text.png
-  :width: 400
-  :alt: Alternative text
+.. image:: docs/result_unit_test.png
+  :width: 600
+  :align: center
