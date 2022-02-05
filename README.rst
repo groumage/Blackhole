@@ -4,7 +4,7 @@ For the first iteration of the internship (called the first iteration and implem
 
 Furthermore, the result of the internhip have been published on Scille's website, the company that develop and maintain Parsec: ``https://parsec.cloud/en/la-blockchain-au-service-du-stockage-cloud-securise/``.
 
-If you are interested to discuss or take a look on the report, please send me an e-mail: guillaume.roumage@gmail.com
+If you are interested to discuss or take a look on the report (in french), please send me an e-mail: guillaume.roumage@gmail.com
 
 Launch unit test using terminal
 -------------------------------
