@@ -14,6 +14,9 @@ Perform test using gui
 ----------------------
 ``$ ./execute_unit_test.sh --gui <path_to_tendermint_executable>``
 
+Summary result of unit test
+---------------------------
+Check that mor than 150 tests out of 157 have been validated.
 .. image:: docs/result_unit_test.png
   :width: 800
   :align: center
