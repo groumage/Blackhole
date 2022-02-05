@@ -8,7 +8,7 @@ If you are interested to discuss or take a look on the report, please send me an
 
 Launch unit test using terminal
 -------------------------------
-``$ ./execute_unit_test.sh ``
+``$ ./execute_unit_test.sh``
 
 Perform test using gui
 ----------------------
