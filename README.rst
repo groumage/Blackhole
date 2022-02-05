@@ -1,8 +1,8 @@
-Iteration 1 : Parsec with metadata stored in Tendermint
+First stage : Parsec with metadata stored in Tendermint
 =======================================================
-The first iteration is to relocate metadata from the parsec backend to Tendermint (all other data stay in the backend).
+For the first stage of the internship (called the first iteration and implemented in the branch parsec-with-blockchain), we chose to relocate the storage of metadata (called Vlob) from the metadata server to the Tendermint blockchain.
 
-Metadata are serialize/deserialize to/from Tendermint. Read/write/update function are overwrite.
+We work on data structures used to manage the metadata files in Parsec, the communication between Parsec and Tendermint and how the structures describing the metadata files have been serialized in Tendermint. This work is validate by unit test. We use unit test that are already present in Parsec. More than 95% of those test are validated, which valid our work.
 
 Launch unit test using terminal
 -------------------------------
