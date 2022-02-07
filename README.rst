@@ -25,4 +25,6 @@ On the one hand the result have been presented at the workshop “Blockchain App
 
 On the other hand, results have been published on Scille's website, the company that develop and maintain Parsec: ``https://parsec.cloud/en/la-blockchain-au-service-du-stockage-cloud-securise`` (in french).
 
+Contact
+=======
 If you are interested about discussion of this project, I'll be happy to answer you :) You can contact me with my mail: guillaume.roumage@gmail.com
