@@ -206,7 +206,7 @@ def main(**kwargs):
     the default mocked up memory component, or in the blockchain. The command
 
        \b
-       $ source test/scripts/run_testenv.sh --db BLOCKCHAIN
+       $ source test/scripts/run_testenv.sh --db MOCKED
 
     sarts the backend with manifests stored in memory, while the command
 

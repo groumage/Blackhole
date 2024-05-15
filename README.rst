@@ -28,3 +28,9 @@ On the other hand, results have been published on Scille's website, the company 
 Contact
 =======
 If you are interested about discussion of this project, I'll be happy to answer you :) You can contact me with my mail: guillaume.roumage@gmail.com
+
+Setup virtual environment
+-------------------------
+
+`$ conda create -n Blackhole python==3.8.1 --no-default-package`
+`$ pip install -r nex_requirements`
