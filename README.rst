@@ -19,3 +19,9 @@ Check that more than 157 tests out of 167 have been validated. Note that the 7 u
 .. image:: docs/result_unit_test.png
   :width: 800
   :align: center
+
+Setup virtual environment
+-------------------------
+
+`$ conda create -n Blackhole python==3.8.1 --no-default-package`
+`$ pip install -r nex_requirements`
