@@ -483,10 +483,10 @@ def backend_store(request):
         pytest.skip("`Test is postgresql-only")
     elif request.config.getoption("--blockchain"):
         # MANAGE TESTS WITH BLOCKCHAIN LABEL
-        return "BLOCKCHAIN"
+        return "MOCKED"
 
     else:
-        return "BLOCKCHAIN"
+        return "MOCKED"
 
 
 @pytest.fixture
